@@ -27,9 +27,16 @@ Cocoa中的大多数对象都是`NSObject`类的子类，因此大多数对象�
 
 ### 运行时函数
 
-运行时系统是一个具有公共接口的动态共享库，其公共接口由位于`/usr/include/objc`目录中的头文件中的一组函数和数据结构组成。其中许多函数允许我们使用纯C语言来复制当我们编写Objective-C代码时编译器所执行的操作，另一些函数构成了通过`NSObject`类的方法输出的功能的基础。这些函数使得开发运行时系统的其它接口成为可能，并创作了增强开发环境的工具。在Objective-C中编程时不需要它们，但是，在编写Objective-C程序时，一些运行时函数有时可能会有用。所有这些功能都记录在[Objective-C Runtime Reference](https://developer.apple.com/documentation/objectivec/objective_c_runtime?language=objc)中。
+运行时系统是一个具有公共接口的动态共享库，其公共接口由位于`/usr/include/objc`目录中的头文件中的一组函数和数据结构组成。其中许多函数允许我们使用纯C语言来复制当我们编写Objective-C代码时编译器所执行的操作，另一些函数构成了通过`NSObject`类的方法输出的功能的基础。这些函数使得开发运行时系统的其它接口成为可能，并生成了增强开发环境的工具。在Objective-C中编程时不需要它们，但是，在编写Objective-C程序时，一些运行时函数有时可能会有用。所有这些功能都记录在[Objective-C Runtime Reference](https://developer.apple.com/documentation/objectivec/objective_c_runtime?language=objc)中。
 
 
 ## 发送消息
 
+本节介绍如何将消息表达式转换为`objc_msgSend`函数调用，以及如何按名称引用方法。然后，还解释了如何利用`objc_msgSend`以及如何绕过动态绑定。
 
+### objc_msgSend函数
+
+在Objective-C中，消息在运行时之前不会被绑定到方法实现。编译器将消息表达式转换为`objc_msgSend`消息传递函数上的调用
+`
+[receiver message]
+`
