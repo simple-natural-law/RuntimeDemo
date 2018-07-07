@@ -59,11 +59,9 @@ objc_msgSend(receiver, selector, arg1, arg2, ...)
 
 当一个新对象被创建时，将为其分配内存，并初始化其实例变量。对象的第一个变量是指向其类结构的指针。这个名为`isa`的指针使得对象能够访问它的类，并通过该类访问它继承的所有类。
 
-> **注意**：虽然严格地说`isa`指针不是语言的一部分，但它是对象与Objective-C运行时系统一起工作所必需的。在结构定义的任何字段中，对象需要等同于struct objc_object（在objc/objc.h中定义）。然而，很少需要创建自己的根对象，并且继承自`NSObject`和`NSProxy`的对象会自动拥有`isa`变量。
-
 类结构和对象结构的这些元素如下图所示：
 
-![图2-1 消息发送框架.png](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Art/messaging1.gif)
+![图2-1 消息发送框架.png](https://upload-images.jianshu.io/upload_images/4906302-015c526213f01b63.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 当一个消息被发送给对象时，`objc_msgSend`函数跟随对象的`isa`指针到类结构的类调度表中查找方法选择器。如果没有找到方法选择器，`objc_msgSend`函数会跟随指向父类的指针到父类的类调度表中查找方法选择器。`objc_msgSend`函数会顺着类层次结构一直查找，直到到达`NSObject`类。一旦找到方法选择器，该函数就会调用类调度表中的方法并将接收对象的数据结构传递给它。
 
