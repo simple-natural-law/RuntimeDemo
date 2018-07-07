@@ -10,7 +10,6 @@ Objective-C语言从编译时间和链接时间到运行时推迟了尽可能多
 
 Objective-C程序在三个不同的级别与运行时系统交互：通过Objective-C源代码，通过Foundation框架中的`NSObject`类中定义的方法，通过直接调用运行时函数。
 
-
 ### Objective-C源代码
 
 在大多数情况下，运行时系统会在后台自动运行。我们只需要编写和编译Objective-C源代码即可使用它。
@@ -67,7 +66,7 @@ objc_msgSend(receiver, selector, arg1, arg2, ...)
 
 这是在运行时选择方法实现的的方式——或者，在面向对象编程的术语中，方法动态地绑定到消息。
 
-为了加快消息发送过程的速度，运行时系统会缓存使用的方法的选择器和地址。每个类都有一个独立的缓存，它可以包含继承的方法以及该类中定义的方法的选择器。在检索调度表之前，消息发送函数首先检查接收对象类的缓存（理论上使用过一次的方法可能会再次使用）。如果缓存中存在方法选择器，则消息发送仅比函数调用稍慢一点。一旦程序运行了足够长的时间来“预热”其缓存，它发送的几乎所有消息都能找到一个缓存的方法。
+为了加快消息发送过程的速度，运行时系统会缓存使用过的方法的选择器和地址。每个类都有一个独立的缓存，它可以包含继承的方法以及该类中定义的方法的选择器。在检索调度表之前，消息发送函数首先检查接收对象类的缓存（理论上使用过一次的方法可能会再次使用）。如果缓存中存在方法选择器，则消息发送仅比函数调用稍慢一点。一旦程序运行了足够长的时间来“预热”其缓存，它发送的几乎所有消息都能找到一个缓存的方法。
 
 ### 使用隐藏参数
 
@@ -75,6 +74,80 @@ objc_msgSend(receiver, selector, arg1, arg2, ...)
 - 接收对象。
 - 方法的选择器。
 
+这些参数为每个方法实现提供与调用该方法实现的消息表达式有关的明确信息，它们之所以被称为隐藏参数是因为它们未在定义方法的源代码中声明。当代码被编译时，它们才会被插入到方法实现中。
+
+虽然这些参数没有显示声明，但源代码仍然可以引用它们（就像它可以引用接收对象的实例变量一样）。方法将接收对象引用为`self`，并将其自身的选择器称为`_cmd`。在下面的示例中，`_cmd`引用为`strange`方法的选择器，`self`引用为接收`strange`消息的对象。
+```
+- strange
+{
+    id  target = getTheReceiver();
+    SEL method = getTheMethod();
+
+    if ( target == self || method == _cmd )
+        return nil;
+        
+    return [target performSelector:method];
+}
+```
+`self`是两个参数中更加有用的一个。实际上，它是接收对象的实例变量可用于方法定义的一种方式。
+
+
+### 获取方法地址
+
+绕过动态绑定的唯一方法是获取方法的地址并直接调用它。这可能适用于极少数情况，例如，当一个特定方法将连续多次执行并且希望每次执行该方法时都避免消息发送的开销。
+
+使用`NSObject`类中定义的`methodForSelector:`方法可以请求一个指向实现了一个方法的程序的指针，然后使用该指针调用方法实现程序。`methodForSelector:`方法返回的指针必须小心地转换为正确的函数类型。返回值和参数类型都应包含在强制转换中。
+
+以下示例显示了实现了`setFilled:`方法的程序是如何被调用的：
+```
+void (*setter)(id, SEL, BOOL);
+int i;
+
+setter = (void (*)(id, SEL, BOOL))[target methodForSelector:@selector(setFilled:)];
+
+for ( i = 0 ; i < 1000 ; i++ )
+    setter(targetList[i], @selector(setFilled:), YES);
+```
+传递给程序的前两个参数是接收对象（self）和方法选择器（_cmd）。这些参数隐藏在方法语法中，但在将方法作为函数调用时必须使其显式化。
+
+使用`methodForSelector:`方法绕过动态绑定可以节省消息发送所需的大部分时间。但是，只有在特定消息重复多次的情况下，节省才会明显，例如上面所示的for循环。
+
+注意，`methodForSelector`方法是由Cocoa运行时系统提供的，它不是Objective-C语言本身的一个特性。
+
+
+## 动态方法解析
+
+本节介绍如何动态提供方法的实现。
+
+### 动态方法解析
+
+在某些情况下，我们可能希望动态提供方法的实现。例如，Objective-C声明属性特性（参看[Objective-C Programming Language](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html#//apple_ref/doc/uid/TP30001163)中的[Declared Properties](#turn)）包含`@dynamic`指令：
+```
+@dynamic propertyName;
+```
+它告诉编译器将动态提供与属性关联的方法。
+
+我们可以实现`resolveInstanceMethod:`方法和`resolveClassMethod:`方法来分别为实例方法和类方法的给定选择器提供一个实现。
+
+一个Objective-C方法在根本上是一个至少需要两个参数（self和_cmd）的C函数，可以使用`class_addMethod`函数将函数作为方法添加到类中。因此，给出以下函数：
+```
+void dynamicMethodIMP(id self, SEL _cmd) {
+    // implementation ....
+}
+```
+我们可以使用`resolveInstanceMethod:`方法动态地将上面的函数作为方法（方法名为`resolveThisMethodDynamically`）添加到一个类中：
+```
+@implementation MyClass
++ (BOOL)resolveInstanceMethod:(SEL)aSEL
+{
+    if (aSEL == @selector(resolveThisMethodDynamically)) {
+        class_addMethod([self class], aSEL, (IMP) dynamicMethodIMP, "v@:");
+        return YES;
+    }
+    return [super resolveInstanceMethod:aSEL];
+}
+@end
+```
 
 
 
