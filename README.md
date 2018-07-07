@@ -153,4 +153,14 @@ void dynamicMethodIMP(id self, SEL _cmd) {
 
 ### 动态加载
 
+Objective-C程序可以在运行时加载和链接新类和类别。新代码被合并到程序中，并且与最开始加载的类和类别进行相同的处理。
+
+动态加载可以用来做很多不同的事情。例如， System Preferences应用程序（系统偏好设置）中的各种模块就是动态加载的。
+
+在Cocoa环境中，通常使用动态加载来允许自定义应用程序。其他人可以编写程序在运行时加载的模块——就像Interface Builder中加载自定义调色板和OS X System Preferences应用程序加载自定义偏好设置模块一样，可加载模块扩展了应用程序的功能，他们以我们允许但是无法由我们自己预测和定义的方式为其做出贡献。我们提供框架，但是其他人提供提供代码。
+
+虽然有一个运行时函数可以在Mach-O文件中执行Objective-C模块的动态加载（`objc_loadModules`，在objc/objc-load.h中定义），但是Cocoa的`NSBundle`类为动态加载提供了一个非常方便的接口。有关`NSBundle`类及其用法的信息，请参看[NSBundle Class Reference](https://developer.apple.com/documentation/foundation/nsbundle?language=occ)。
+
+
+
 
