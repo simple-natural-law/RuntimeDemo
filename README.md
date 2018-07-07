@@ -148,7 +148,9 @@ void dynamicMethodIMP(id self, SEL _cmd) {
 }
 @end
 ```
+转发方法（如[消息转发](#turn)中所述）和动态方法解析在很大程度上是正交的，类可以在转发机制启动之前动态解析方法。如果调用`respondsToSelector:`方法或者`instancesRespondToSelector:`方法，则动态方法解析器有机会首先为选择器提供`IMP`。如果我们实现了`resolveInstanceMethod:`方法，但是希望特定的选择器实际上是通过消息转发机制转发的，则为这些选择器返回`NO`。
 
 
+### 动态加载
 
 
