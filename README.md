@@ -15,7 +15,7 @@ Objective-C程序在三个不同的级别与运行时系统交互：通过Object
 
 在大多数情况下，运行时系统会在后台自动运行。我们只需要编写和编译Objective-C源代码即可使用它。
 
-当编译包含Objective-C类和方法的代码时，编译器会创建实现该语言动态特性的数据结构和函数调用。数据结构捕获在类和类别定义中以及在协议声明中找到的信息，它们包括在[The Objective-C Programming Language](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html#//apple_ref/doc/uid/TP30001163)中[Defining a Class](#turn)和[Protocols](#turn)讨论的类和协议对象，以及方法选择器，实例变量模板和从源代码中提取的其他信息。主要的运行时函数是发送消息的函数，如[消息传递](#turn)所述。它由源代码消息表达式调用。
+当编译包含Objective-C类和方法的代码时，编译器会创建实现该语言动态特性的数据结构和函数调用。数据结构捕获在类和类别定义中以及在协议声明中找到的信息，它们包括在[The Objective-C Programming Language](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html#//apple_ref/doc/uid/TP30001163)中[Defining a Class](#turn)和[Protocols](#turn)讨论的类和协议对象，以及方法选择器，实例变量模板和从源代码中提取的其他信息。主要的运行时函数是发送消息的函数，如[消息发送](#turn)所述。它由源代码消息表达式调用。
 
 ### NSObject方法
 
@@ -30,7 +30,7 @@ Cocoa中的大多数对象都是`NSObject`类的子类，因此大多数对象�
 运行时系统是一个具有公共接口的动态共享库，其公共接口由位于`/usr/include/objc`目录中的头文件中的一组函数和数据结构组成。其中许多函数允许我们使用纯C语言来复制当我们编写Objective-C代码时编译器所执行的操作，另一些函数构成了通过`NSObject`类的方法输出的功能的基础。这些函数使得开发运行时系统的其它接口成为可能，并生成了增强开发环境的工具。在Objective-C中编程时不需要它们，但是，在编写Objective-C程序时，一些运行时函数有时可能会有用。所有这些功能都记录在[Objective-C Runtime Reference](https://developer.apple.com/documentation/objectivec/objective_c_runtime?language=objc)中。
 
 
-## 消息传递
+## 消息发送
 
 本节介绍如何将消息表达式转换为`objc_msgSend`函数调用，以及如何按名称引用方法。然后，还解释了如何使用`objc_msgSend`以及如何绕过动态绑定。
 
@@ -40,7 +40,7 @@ Cocoa中的大多数对象都是`NSObject`类的子类，因此大多数对象�
 ```
 [receiver message]
 ```
-转换为`objc_msgSend`消息传递函数的调用。此函数将接收者和消息中提到的方法的名称（即方法选择器）作为其两个主要参数：
+转换为`objc_msgSend`消息发送函数的调用。此函数将接收者和消息中提到的方法的名称（即方法选择器）作为其两个主要参数：
 ```
 objc_msgSend(receiver, selector)
 ```
@@ -48,14 +48,26 @@ objc_msgSend(receiver, selector)
 ```
 objc_msgSend(receiver, selector, arg1, arg2, ...)
 ```
-消息传递函数会为动态绑定去做必要的任何事情：
+消息发送函数会为动态绑定去做必要的任何事情：
 - 它首先找到选择器所引用的程序（即方法实现）。由于同样的方法能够被单独的类以不同的方式实现，所以它找到的精确程序取决于接收者的类。
 - 然后它调用该程序，将接收对象（指向其数据的指针）以及为该方法指定的任何参数传递给它。
 - 最后，它将程序的返回值作为其自身的返回值传递。
 
-消息传递的关键在于编译器为每个类和对象构建的结构。每个类结构都包括以下两个基本要素：
+消息发送的关键在于编译器为每个类和对象构建的结构。每个类结构都包括以下两个基本要素：
 - 一个指向父类的指针。
-- 一个类调度表。此表含有将方法选择器与这些方法选择器所标识方法的特定于类的地址相关联的条目。`setOrigin::`方法的选择器与`setOrigin::`（实现的程序）的地址相关联，`display`方法的选择器与`display`的地址相关联，依此类推。
+- 一个类调度表。此表含有将方法选择器与这些方法选择器所标识方法的特定于类的地址相关联的条目。`setOrigin::`方法的选择器与`setOrigin::`（方法实现程序）的地址相关联，`display`方法的选择器与`display`的地址相关联，依此类推。
 
-> **注意**：虽然严格地说isa指针不是语言的一部分，但其是对象与Objective-C运行时系统一起工作所必需的。对象需要等效为在结构定义的任何字段中的`struct objc_object`（在objc/objc.h中定义）。
+当一个新对象被创建时，将为其分配内存，并初始化其实例变量。对象的第一个变量是指向其类结构的指针。这个名为`isa`的指针使得对象能够访问它的类，并通过该类访问它继承的所有类。
+
+> **注意**：虽然严格地说`isa`指针不是语言的一部分，但它是对象与Objective-C运行时系统一起工作所必需的。在结构定义的任何字段中，对象需要等同于struct objc_object（在objc/objc.h中定义）。然而，很少需要创建自己的根对象，并且继承自`NSObject`和`NSProxy`的对象会自动拥有`isa`变量。
+
+类结构和对象结构的这些元素如下图所示：
+
+![图2-1 消息发送框架.png](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Art/messaging1.gif)
+
+当一个消息被发送给对象时，`objc_msgSend`函数跟随对象的`isa`指针到类结构的类调度表中查找方法选择器。如果没有找到方法选择器，`objc_msgSend`函数会跟随指向父类的指针到父类的类调度表中查找方法选择器。`objc_msgSend`函数会顺着类层次结构一直查找，直到到达`NSObject`类。一旦找到方法选择器，该函数就会调用类调度表中的方法并将接收对象的数据结构传递给它。
+
+这是在运行时选择方法实现的的方式——或者在面向对象编程的术语中，方法动态地绑定到消息。
+
+
 
