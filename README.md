@@ -240,6 +240,45 @@ Objective-C程序可以在运行时加载和链接新类和类别。新代码被
 
 ### 转发和继承
 
+虽然转发模仿了继承，但`NSObject`类从来不会混淆两者。像`respondsToSelector:`和`isKindOfClass:`这样的方法只查看继承层次结构，永远不会查看转发链。例如，如果询问`Warrior`对象是否响应`negotiate`消息：
+```
+if ( [aWarrior respondsToSelector:@selector(negotiate)] )
+    ...
+```
+返回值是`NO`，尽管它可以毫无错误地接收`negotiate`消息，并且从某种意义上来说，通过转发该消息给`Diplomat`对象来回应该消息。（请看[图4-1 转发.png](#turn)）
+
+在许多情况下，`NO`是正确答案，但某些情况下可能不是。如果使用转发来设置一个代理对象或者扩展类的功能，则转发机制可能应该像继承一样透明。如果希望对象的行为就像它们真正继承了它们转发消息的对象的行为一样，那么需要重新实现`respondsToSelector:`方法和`isKindOfClass:`方法来包含我们的转发算法：
+```
+- (BOOL)respondsToSelector:(SEL)aSelector
+{
+    if ( [super respondsToSelector:aSelector] )
+        return YES;
+    else {
+        /* Here, test whether the aSelector message can     *
+        * be forwarded to another object and whether that  *
+        * object can respond to it. Return YES if it can.  */
+    }
+    return NO;
+}
+```
+除了`respondsToSelector:`和`isKindOfClass:`方法之外，`instancesRespondToSelector:`方法还应该反映转发算法。如果使用了协议，则同意应将`conformsToProtocol:`方法加入到列表中。类似的，如果一个对象转发它收到的任何远程消息，它应该重新实现`methodSignatureForSelector:`方法来返回最终响应转发消息的方法的准确描述。例如，如果一个对象能够将消息转发给它的代理，那么实现`methodSignatureForSelector:`方法如下：
+```
+- (NSMethodSignature*)methodSignatureForSelector:(SEL)selector
+{
+    NSMethodSignature* signature = [super methodSignatureForSelector:selector];
+    if (!signature) {
+        signature = [surrogate methodSignatureForSelector:selector];
+    }
+    return signature;
+}
+```
+可以考虑将转发算法放在私有代码中的某个位置，并使用所有这些方法（包括`forwardInvocation:`）来调用它。
+
+> **注意**：这是一项高级技术，仅适用于无法提供其他解决方案的情况。它不是作为继承的替代。如果必须使用此技术，请确保完全了解执行转发的类和转发对象类的行为。
+
+
+## 类型编码
+
 
 
 
