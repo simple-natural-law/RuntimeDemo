@@ -349,6 +349,7 @@ typedef struct example {
 `NSObject`类只声明一个类型为`Class`的实例变量`isa`。
 
 注意，尽管`@encode()`指令不返回下表中列出的其他编码，但是当它们用于在协议中声明方法时，运行时系统使用它们来表示类型限定符。
+
 | Code | Meaning |
 |--------|-----------|
 | r | const |
