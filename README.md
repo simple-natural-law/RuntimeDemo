@@ -279,6 +279,43 @@ if ( [aWarrior respondsToSelector:@selector(negotiate)] )
 
 ## 类型编码
 
+为了协助运行时系统，编译器会将每个方法的返回值和参数的类型编码为字符串，并将此字符串与方法选择器相关联。它使用的编码方案在其他上下文中也很有用，所以可以公开使用`@encode()`编译器指令。当给定一个类型规范时，`@encode()`返回编码该类型的字符串。类型可以是基本类型，例如`int`，指针，标记结构或联合，或者类名——实际上，任何类型都可以用作C运算符`sizeof()`的参数。
+```
+char *buf1 = @encode(int **);
+char *buf2 = @encode(struct key);
+char *buf3 = @encode(Rectangle);
+```
+下表列出了类型代码。注意，它们中的许多与编码对象时用于存档和分发的代码重叠。但是，此处列出的代码在编写编码器时是无法使用的，并且在编写不是由`@encode()`生成的编码器时可能需要使用代码。
+
+| Code | Meaning |
+|--------|-----------|
+| c | A `Char` |
+| i | An `int` |
+| s | A `short` |
+| l | A `long` <br> l is treated as a 32-bit quantity on 64-bit programs. |
+| q | A `long long` |
+| C | An `unsigned char` |
+| I | An `unsigned int` |
+| S | An `unsigned short` |
+| L | An `unsigned long` |
+| Q | An `unsigned long long` |
+| f | An `float` |
+| d | A `double` |
+| B | A C++ `bool` or a C99 `_Bool` |
+| v | A `void` |
+| * | A character string (`char *`) |
+| @ | An object (whether statically typed or typed `id`) |
+| # | A class object (`Class`) |
+| : | A method selector (`SEL`) |
+| [array type] | An array |
+| {name=type...} | A structure |
+| (name=type...) | A union |
+| bnum | A bit field of num bits |
+| ^type | A pointer to type |
+| ^type | A pointer to type |
+| ? | An unknown type (among other things, this code is used for function pointers |
+
+> **重要**：Objective-C不支持`long double`类型。 `@encode(long double)`返回`d`，这与`double`的编码相同。
 
 
 
