@@ -127,7 +127,7 @@ for ( i = 0 ; i < 1000 ; i++ )
 ```
 它告诉编译器将动态提供与属性关联的方法。
 
-我们可以实现`resolveInstanceMethod:`方法和`resolveClassMethod:`方法来分别为实例方法和类方法的给定选择器提供一个实现。
+可以实现`resolveInstanceMethod:`方法和`resolveClassMethod:`方法来分别为实例方法和类方法的给定选择器提供一个实现。
 
 一个Objective-C方法在根本上是一个至少需要两个参数（self和_cmd）的C函数，可以使用`class_addMethod`函数将函数作为方法添加到类中。因此，给出以下函数：
 ```
@@ -135,7 +135,7 @@ void dynamicMethodIMP(id self, SEL _cmd) {
     // implementation ....
 }
 ```
-我们可以使用`resolveInstanceMethod:`方法动态地将上面的函数作为方法（方法名为`resolveThisMethodDynamically`）添加到一个类中：
+使用`resolveInstanceMethod:`方法动态地将上面的函数作为方法（方法名为`resolveThisMethodDynamically`）添加到一个类中：
 ```
 @implementation MyClass
 + (BOOL)resolveInstanceMethod:(SEL)aSEL
@@ -148,7 +148,7 @@ void dynamicMethodIMP(id self, SEL _cmd) {
 }
 @end
 ```
-转发方法（如[消息转发](#turn)中所述）和动态方法解析在很大程度上是正交的，类可以在转发机制启动之前动态解析方法。如果调用`respondsToSelector:`方法或者`instancesRespondToSelector:`方法，则动态方法解析器有机会首先为选择器提供`IMP`。如果我们实现了`resolveInstanceMethod:`方法，但是希望特定的选择器实际上是通过消息转发机制转发的，则为这些选择器返回`NO`。
+转发方法（如[消息转发](#turn)中所述）和动态方法解析在很大程度上是正交的，类可以在转发机制启动之前动态解析方法。如果调用`respondsToSelector:`方法或者`instancesRespondToSelector:`方法，则动态方法解析器有机会首先为选择器提供`IMP`。如果实现了`resolveInstanceMethod:`方法，但是希望特定的选择器实际上是通过消息转发机制转发的，则为这些选择器返回`NO`。
 
 
 ### 动态加载
@@ -159,20 +159,61 @@ Objective-C程序可以在运行时加载和链接新类和类别。新代码被
 
 在Cocoa环境中，通常使用动态加载来允许自定义应用程序。其他人可以编写程序在运行时加载的模块——就像Interface Builder中加载自定义调色板和OS X System Preferences应用程序加载自定义偏好设置模块一样，可加载模块扩展了应用程序的功能，他们以我们允许但是无法由我们自己预测和定义的方式为其做出贡献。我们提供框架，但是其他人提供提供代码。
 
-虽然有一个运行时函数可以在Mach-O文件中执行Objective-C模块的动态加载（`objc_loadModules`，在objc/objc-load.h中定义），但是Cocoa的`NSBundle`类为动态加载提供了一个非常方便的接口。有关`NSBundle`类及其用法的信息，请参看[NSBundle Class Reference](https://developer.apple.com/documentation/foundation/nsbundle?language=occ)。
+虽然有一个运行时函数可以在Mach-O文件中执行Objective-C模块的动态加载（`objc_loadModules`，在objc/objc-load.h中定义），但是Cocoa的`NSBundle`类为动态加载提供了一个非常方便的接口。有关`NSBundle`类及其用法的信息，请参看[NSBundle](https://developer.apple.com/documentation/foundation/nsbundle?language=occ)。
 
 
 
 ## 消息转发
 
-将消息发送给一个不能处理该消息的对象会引发错误。但是，在发布错误之前，运行时系统给接收对象提供了第二次机会去处理该消息。
+将消息发送给一个不能处理该消息的对象会引发错误。但是，在宣布错误之前，运行时系统给接收对象提供了第二次机会去处理该消息。
 
 
 ### 转发
 
-如果我们发送一个消息给不能处理该消息的对象，则在发布错误之前，运行时系统会向该对象发送一个唯一参数是一个`NSInvocation`对象的`forwardInvocation:`消息——`NSInvocation`对象封装了原始消息和该消息传递的参数。
+如果发送一个消息给不能处理该消息的对象，则在宣布错误之前，运行时系统会向该对象发送一个`forwardInvocation:`消息，该消息唯一的参数是一个`NSInvocation`对象——`NSInvocation`对象封装了原始的消息和该消息传递的参数。
 
-我们可以实现`forwardInvocation:`方法来为消息提供默认的响应，或者以其他方式来避免错误。顾名思义，`forwardInvocation:`方法通常用于将消息转发给另一个对象。
+可以实现`forwardInvocation:`方法来为消息提供默认的响应，或者以其他方式来避免错误。顾名思义，`forwardInvocation:`方法通常用于将消息转发给另一个对象。
+
+为了明白转发的范围和目的，请设想以下情景：首先，假设我们正在设计一个能够响应名为`negotiate`的消息的对象，并且希望其响应中包含另一种对象对该消息的响应。可以通过在`negotiate`方法实现主体中的某个位置将`negotiate`消息传递给另一个对象来轻松完成此操作。
+
+更进一步，假设我们希望对象对`negotiate`消息的响应完全是在另一个类中实现的响应。实现此目的的一种方法是让类从其他类继承该方法。然而，可能无法以这种方式安排事情，因为我们的类和实现了`negotiate`方法的类可能位于继承层次结构的不同分支中。
+
+即使类不能继承`negotiate`方法，我们仍然可以通过实现一个简单地将该消息传递给另一个类的实例的方法来借用它：
+```
+- (id)negotiate
+{
+    if ( [someOtherObject respondsTo:@selector(negotiate)] )
+        return [someOtherObject negotiate];
+        
+    return self;
+}
+```
+这种方式可能会有点麻烦，特别是如果有许多需要对象传递给另一个对象的消息。我们必须实现一种方法来覆盖每个想要从其他类借用的方法。此外，这可能无法处理那些我们不知道的情况。在编写代码时，我们可能无法确定想要转发的完整消息集。该集合可能取决于运行时的事件，并且可能会在未来实现新的方法和类时发生改变。
+
+`forwardInvocation:`消息提供的第二次机会为这个问题提供了一个解决方案，其是动态的而不是静态的。它的工作方式为：当一个对象无法响应消息是因为它没有与该消息中的选择器相匹配的方法时，运行时系统会通过向该对象发送一个`forwardInvocation:`消息来告知它。每个对象都从`NSObject`类继承了一个`forwardInvocation:`方法。但是，在`NSObject`类的此方法实现中只是调用了`doesNotRecognizeSelector:`方法。通过重写该方法来覆盖`NSObject`类的实现，我们可以使用`forwardInvocation:`消息提供的机会将消息转发给其他对象。
+
+要转发一个消息，`forwardInvocation:`方法需要做以下事情：
+- 确定消息的去向。
+- 使用原始的参数发送它。
+
+可以使用`invokeWithTarget:`方法发送消息：
+```
+- (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+    if ([someOtherObject respondsToSelector:[anInvocation selector]])
+    
+        [anInvocation invokeWithTarget:someOtherObject];
+    else
+        [super forwardInvocation:anInvocation];
+}
+```
+转发的消息的返回值会返回给原始的消息接受者。可以将所有类型的返回值传递给接收者，包括`id`类型对象，结构体和双精度浮点数。
+
+`forwardInvocation:`方法可以充当无法识别的消息的分发中心，将它们分发给不同的接收者。或者它可以是转移站，将所有消息发送到同一个目的地。它可以将一条消息翻译成另一条消息，或者只是“吞下”一些消息，这样就没有响应也没有错误。`forwardInvocation:`方法还可以将多个消息合并到一个响应中，该方法做什么事情取决于实现者。
+
+> **注意**：`forwardInvocation:`方法只有在对象调用一个其没有实现的方法时才会处理消息。例如，如果希望对象将`negotiate`消息转发给另一个对象，则该对象不能拥有自己的`negotiate`方法。否则，运行时系统永远都不会发送`forwardInvocation:`消息给该对象。
+
+有关转发和调用的更多信息，请参看[NSInvocation](https://developer.apple.com/documentation/foundation/nsinvocation?language=occ)。
 
 
-
+### 转发和多重继承
