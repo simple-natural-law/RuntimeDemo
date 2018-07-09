@@ -12,4 +12,6 @@
 
 - (void)eatApple;
 
+- (void)doSomeThings;
+
 @end

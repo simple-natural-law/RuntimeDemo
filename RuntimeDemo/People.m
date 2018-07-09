@@ -15,4 +15,11 @@
     NSLog(@"people eat apple. ");
 }
 
+
+- (void)doSomeThings
+{
+    NSLog(@"people do some things.");
+}
+
+
 @end
