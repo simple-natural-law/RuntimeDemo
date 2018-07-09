@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 #import "People.h"
-
+#import "Student.h"
 
 @interface ViewController ()
 
@@ -46,7 +46,16 @@
 
 /********************************* 动态方法解析 ***********************************/
     
-    [people doSomeThings];
+    // 在某些情况下，可能想要动态提供方法的实现。当某个类声明了一个方法却没有实现该方法时，调用这个类的该方法。此时，在消息发送过程中，在类调度表中无法找到与该方法选择器对应的方法。这时运行时系统就会调用该类的`resolveInstanceMethod:`或者`resolveClassMethod:`，这就提供了一个机会来让我们动态提供方法的实现。
+    
+    // [people doSomeThings];
+
+
+/********************************* 消息转发 ***********************************/
+    
+    Student *student = [[Student alloc] init];
+    
+    [student playMusic];
 }
 
 

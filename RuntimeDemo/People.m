@@ -9,6 +9,7 @@
 #import "People.h"
 #import <objc/runtime.h>
 
+
 @implementation People
 
 
@@ -31,8 +32,11 @@ void writeCode (id target, SEL selector)
 
 + (BOOL)resolveInstanceMethod:(SEL)sel
 {
+    NSLog(@"resolveInstanceMethod");
+    
     if (sel == @selector(doSomeThings))
     {
+        // 使用class_addMethod函数将函数作为方法添加到类中
         class_addMethod([self class], sel, (IMP)writeCode, "v@:");
 
         return YES;
@@ -40,6 +44,5 @@ void writeCode (id target, SEL selector)
 
     return [super resolveClassMethod:sel];
 }
-
 
 @end

@@ -14,6 +14,8 @@
 		3416E2F120F060970039996B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3416E2EF20F060970039996B /* LaunchScreen.storyboard */; };
 		3416E2F420F060970039996B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3416E2F320F060970039996B /* main.m */; };
 		3422324A20F309700055E5DC /* People.m in Sources */ = {isa = PBXBuildFile; fileRef = 3422324920F309700055E5DC /* People.m */; };
+		3422324D20F33CF10055E5DC /* AudioPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3422324C20F33CF10055E5DC /* AudioPlayer.m */; };
+		3422325020F340DB0055E5DC /* Student.m in Sources */ = {isa = PBXBuildFile; fileRef = 3422324F20F340DB0055E5DC /* Student.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +31,10 @@
 		3416E2F320F060970039996B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3422324820F309700055E5DC /* People.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = People.h; sourceTree = "<group>"; };
 		3422324920F309700055E5DC /* People.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = People.m; sourceTree = "<group>"; };
+		3422324B20F33CF10055E5DC /* AudioPlayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioPlayer.h; sourceTree = "<group>"; };
+		3422324C20F33CF10055E5DC /* AudioPlayer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioPlayer.m; sourceTree = "<group>"; };
+		3422324E20F340DB0055E5DC /* Student.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Student.h; sourceTree = "<group>"; };
+		3422324F20F340DB0055E5DC /* Student.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Student.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +73,10 @@
 				3416E2E820F060960039996B /* ViewController.m */,
 				3422324820F309700055E5DC /* People.h */,
 				3422324920F309700055E5DC /* People.m */,
+				3422324E20F340DB0055E5DC /* Student.h */,
+				3422324F20F340DB0055E5DC /* Student.m */,
+				3422324B20F33CF10055E5DC /* AudioPlayer.h */,
+				3422324C20F33CF10055E5DC /* AudioPlayer.m */,
 				3416E2EA20F060960039996B /* Main.storyboard */,
 				3416E2ED20F060970039996B /* Assets.xcassets */,
 				3416E2EF20F060970039996B /* LaunchScreen.storyboard */,
@@ -148,8 +158,10 @@
 			files = (
 				3422324A20F309700055E5DC /* People.m in Sources */,
 				3416E2E920F060960039996B /* ViewController.m in Sources */,
+				3422324D20F33CF10055E5DC /* AudioPlayer.m in Sources */,
 				3416E2F420F060970039996B /* main.m in Sources */,
 				3416E2E620F060960039996B /* AppDelegate.m in Sources */,
+				3422325020F340DB0055E5DC /* Student.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
