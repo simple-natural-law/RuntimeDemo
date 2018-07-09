@@ -276,6 +276,55 @@ if ( [aWarrior respondsToSelector:@selector(negotiate)] )
 
 > **注意**：这是一项高级技术，仅适用于无法提供其他解决方案的情况。它不是作为继承的替代。如果必须使用此技术，请确保完全了解执行转发的类和转发对象类的行为。
 
+### 完整的消息转发机制流程
+
+向对象发送一个其不能处理的消息后，如果动态方法解析未成功，则会启动消息转发机制。
+
+首先，运行时系统调用对象的`forwardingTargetForSelector:`方法询问是否存在该消息的后备接收者。则将消息发送给这个后备接收者，消息转发完成。
+```
+- (id)forwardingTargetForSelector:(SEL)aSelector
+{
+    NSLog(@"%@ --> forwardingTargetForSelector",[self class]);
+
+    if (aSelector == @selector(playMusic))
+    {
+        return [[AudioPlayer alloc] init];
+    }
+
+    return [super forwardingTargetForSelector:aSelector];
+}
+```
+如果不存在，运行时系统会调用`methodSignatureForSelector:`方法获取该方法的签名并将其封装成一个`NSInvocation`对象，然后调用`forwardInvocation:`方法并将`NSInvocation`对象传递给它。在`forwardInvocation:`方法实现中将这个消息发送给合适的对象或者废弃这条消息，消息转发机制完成。
+```
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
+{
+    NSLog(@"%@ --> methodSignatureForSelector",[self class]);
+
+    if (aSelector == @selector(pause))
+    {
+        NSMethodSignature *methodSignature = [NSMethodSignature signatureWithObjCTypes:"v@:"];
+
+        return methodSignature;
+    }
+
+    return [super methodSignatureForSelector:aSelector];
+}
+
+
+- (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+    NSLog(@"%@ --> forwardInvocation",[self class]);
+
+    if (anInvocation.selector == @selector(pause))
+    {
+        [anInvocation invokeWithTarget:[[AudioPlayer alloc] init]];
+    }else
+    {
+        [super forwardInvocation:anInvocation];
+    }
+}
+```
+
 
 ## 类型编码
 

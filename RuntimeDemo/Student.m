@@ -20,6 +20,10 @@
     return [super resolveInstanceMethod:sel];
 }
 
+#pragma -mark 消息转发机制流程
+
+// 首先，运行时系统调用`forwardingTargetForSelector:`方法询问是否存在该消息的后备接收者。如果存在，则将消息发送给这个后备接收者，消息转发完成。如果不存在，运行时系统会调用`methodSignatureForSelector:`方法获取该方法的签名并将其封装成一个`NSInvocation`对象，然后调用`forwardInvocation:`方法并将`NSInvocation`对象传递给它，在`forwardInvocation:`方法实现中将这个消息发送给合适的对象，消息转发机制完成。
+
 
 - (id)forwardingTargetForSelector:(SEL)aSelector
 {
