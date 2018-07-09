@@ -7,18 +7,38 @@
 //
 
 #import "People.h"
+#import <objc/runtime.h>
 
 @implementation People
 
+
 - (void)eatApple
 {
-    NSLog(@"people eat apple. ");
+    NSLog(@"people eats an apple. ");
+}
+
+- (void)say:(NSString *)string
+{
+    NSLog(@"people says : %@",string);
 }
 
 
-- (void)doSomeThings
+void writeCode (id target, SEL selector)
 {
-    NSLog(@"people do some things.");
+    NSLog(@"write code.");
+}
+
+
++ (BOOL)resolveInstanceMethod:(SEL)sel
+{
+    if (sel == @selector(doSomeThings))
+    {
+        class_addMethod([self class], sel, (IMP)writeCode, "v@:");
+
+        return YES;
+    }
+
+    return [super resolveClassMethod:sel];
 }
 
 

@@ -12,6 +12,8 @@
 
 - (void)eatApple;
 
+- (void)say:(NSString *)string;
+
 - (void)doSomeThings;
 
 @end

@@ -7,7 +7,6 @@
 //
 
 #import "ViewController.h"
-#import <objc/objc.h>
 #import "People.h"
 
 
@@ -34,7 +33,20 @@
     
     [people eatApple];
     
-    // 绕过动态绑定的唯一方法是获取方法的地址并直接调用它。这可能适用于极少数情况，例如，当一个特定方法将连续多次执行并且希望每次执行该方法时都避免消息发送的开销时。
+    // 绕过动态绑定的唯一方法是获取方法的地址并直接调用它。这可能适用于极少数情况，例如，当一个特定方法将连续多次执行并且希望每次执行该方法时都避免消息发送的开销时，使用methodForSelector:方法绕过动态绑定可以节省消息发送所需的大部分时间。
+    
+    void (*peopleSay) (id, SEL, NSString *);
+    
+    peopleSay = (void (*) (id, SEL, NSString *))[people methodForSelector:@selector(say:)];
+    
+    for (int i = 0; i < 1000; i++)
+    {
+        peopleSay(people, @selector(say:), @"talk is cheap, show you my code.");
+    }
+
+/********************************* 动态方法解析 ***********************************/
+    
+    [people doSomeThings];
 }
 
 
