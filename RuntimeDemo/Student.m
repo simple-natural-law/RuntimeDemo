@@ -8,24 +8,36 @@
 
 #import "Student.h"
 #import "AudioPlayer.h"
+#import <objc/runtime.h>
 
 @implementation Student
 
-
+// 如果动态方法解析不成功，则启动消息转发机制。
 + (BOOL)resolveInstanceMethod:(SEL)sel
 {
-    NSLog(@"resolveInstanceMethod");
+    NSLog(@"%@ --> resolveInstanceMethod",[self class]);
     
     return [super resolveInstanceMethod:sel];
 }
 
+
+- (id)forwardingTargetForSelector:(SEL)aSelector
+{
+    NSLog(@"%@ --> forwardingTargetForSelector",[self class]);
+    
+    return [super forwardingTargetForSelector:aSelector];
+}
+
+
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
-    NSLog(@"methodSignatureForSelector");
+    NSLog(@"%@ --> methodSignatureForSelector",[self class]);
     
-    if (aSelector == @selector(playMusic))
+    if (aSelector == NSSelectorFromString(@"playMusic"))
     {
-        return [NSMethodSignature signatureWithObjCTypes:"v@:"];
+        NSMethodSignature *methodSignature = [NSMethodSignature signatureWithObjCTypes:"v@:"];
+        
+        return methodSignature;
     }
     
     return [super methodSignatureForSelector:aSelector];
@@ -34,9 +46,9 @@
 
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
-    NSLog(@"forwardInvocation");
+    NSLog(@"%@ --> forwardInvocation",[self class]);
     
-    if (anInvocation.selector == @selector(playMusic))
+    if (anInvocation.selector == NSSelectorFromString(@"playMusic"))
     {
         [anInvocation invokeWithTarget:[[AudioPlayer alloc] init]];
     }else
