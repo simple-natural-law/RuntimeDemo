@@ -15,4 +15,11 @@
     NSLog(@"audio player play music.");
 }
 
+
+- (void)pause
+{
+    NSLog(@"audio player pause.");
+}
+
+
 @end

@@ -12,4 +12,6 @@
 
 - (void)playMusic;
 
+- (void)pause;
+
 @end

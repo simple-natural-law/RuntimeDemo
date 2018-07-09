@@ -10,6 +10,6 @@
 
 @interface AudioPlayer : NSObject
 
-- (void)playMusic;
+
 
 @end

@@ -25,6 +25,11 @@
 {
     NSLog(@"%@ --> forwardingTargetForSelector",[self class]);
     
+    if (aSelector == @selector(playMusic))
+    {
+        return [[AudioPlayer alloc] init];
+    }
+    
     return [super forwardingTargetForSelector:aSelector];
 }
 
@@ -33,7 +38,7 @@
 {
     NSLog(@"%@ --> methodSignatureForSelector",[self class]);
     
-    if (aSelector == NSSelectorFromString(@"playMusic"))
+    if (aSelector == @selector(pause))
     {
         NSMethodSignature *methodSignature = [NSMethodSignature signatureWithObjCTypes:"v@:"];
         
@@ -48,7 +53,7 @@
 {
     NSLog(@"%@ --> forwardInvocation",[self class]);
     
-    if (anInvocation.selector == NSSelectorFromString(@"playMusic"))
+    if (anInvocation.selector == @selector(pause))
     {
         [anInvocation invokeWithTarget:[[AudioPlayer alloc] init]];
     }else
